@@ -5,6 +5,7 @@ from QuAcq import QuAcq
 from MQuAcq import MQuAcq
 from MQuAcq2 import MQuAcq2
 from GrowAcq import GrowAcq
+from RobustAcq import RobustAcq
 
 from benchmarks import *
 from sklearn.naive_bayes import CategoricalNB, GaussianNB
@@ -19,7 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser(prog='PROG', usage='%(prog)s [options]')
 
     # Parsing algorithm
-    parser.add_argument("-a", "--algorithm", type=str, choices=["quacq", "mquacq", "mquacq2", "mquacq2-a", "growacq"],
+    parser.add_argument("-a", "--algorithm", type=str, choices=["quacq", "mquacq", "mquacq2", "mquacq2-a", "growacq", "robustacq"],
                         required=True,
                         help="The name of the algorithm to use")
     # Parsing specific to GrowAcq
@@ -64,6 +65,9 @@ def parse_args():
 
     # Parsing time limit - will default to None if none is provided
     parser.add_argument("-t", "--time-limit", type=float, help="An optional time limit")
+    
+    # Parsing stopping threshold - will default to 1 if none is provided
+    parser.add_argument("-st", "--stopping-threshold", type=int, help="An optional stopping threshold for RobustAcq", default=1)
 
     # Parsing benchmark
     parser.add_argument("-b", "--benchmark", type=str, required=True,
@@ -404,6 +408,14 @@ if __name__ == "__main__":
                             gqg=args.guide_qgen, gfs=args.guide_findscope, gfc=args.guide_findc,
                             classifier_name=args.classifier, time_limit=args.time_limit, findscope_version=fs_version,
                             findc_version=fc_version)
+    
+    ## ROBUST ACQ
+    elif args.algorithm == "robustacq":
+        ca_system = RobustAcq(args.stopping_threshold, gamma, grid, C_T, qg=args.query_generation, obj=args.objective, classifier=classifier,
+                              gqg=args.guide_qgen, gfs=args.guide_findscope, gfc=args.guide_findc,
+                              classifier_name=args.classifier, time_limit=args.time_limit, findscope_version=fs_version,
+                              findc_version=fc_version)
+        
     else:
         raise Exception("Algorithm not implemented")
 

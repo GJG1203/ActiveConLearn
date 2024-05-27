@@ -17,11 +17,17 @@ cliques_cutoff = 0.5
 
 class ConAcq:
 
-    def __init__(self, gamma, grid, ct, bias, X, C_l, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
+    def __init__(self, stopping_t, gamma, grid, ct, bias, X, C_l, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
                  classifier_name=None, time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000):
 
         self.debug_mode = False
+        
+        # Stopping Threshold
+        if stopping_t == None:
+            self.stoppingThresh = None
+        else:
+            self.stoppingThresh = stopping_t
 
         # Target network
         self.C_T = ct
@@ -29,6 +35,7 @@ class ConAcq:
         self.grid = grid
         self.gamma = gamma
         self.B = bias
+        self.Br = set()
 
         # Guery generation, FindScope and FindC versions
         self.qg = qg
