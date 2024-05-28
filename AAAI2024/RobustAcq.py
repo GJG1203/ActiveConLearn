@@ -17,7 +17,7 @@ from utils import construct_bias, get_kappa
 
 
 class RobustAcq(ConAcq):
-    def __init__(self, stopping_t, constraint_t, gamma, grid, ct, bias, X, C_l, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
+    def __init__(self, gamma, grid, ct, bias, X, C_l, stopping_t=1, constraint_t=10, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
                  classifier_name=None, time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000):
         super().__init__(stopping_t, constraint_t, gamma, grid, ct, bias, X, C_l, qg, gqg, gfs, gfc, obj, classifier, classifier_name, time_limit, findscope_version,

@@ -414,7 +414,7 @@ if __name__ == "__main__":
     
     ## ROBUST ACQ
     elif args.algorithm == "robustacq":
-        ca_system = RobustAcq(args.stopping_threshold, args.constraint_threshold, gamma, grid, C_T, qg=args.query_generation, obj=args.objective, classifier=classifier,
+        ca_system = RobustAcq(gamma, grid, C_T, stopping_t=args.stopping_threshold, constraint_t=args.constraint_threshold, qg=args.query_generation, obj=args.objective, classifier=classifier,
                               gqg=args.guide_qgen, gfs=args.guide_findscope, gfc=args.guide_findc,
                               classifier_name=args.classifier, time_limit=args.time_limit, findscope_version=fs_version,
                               findc_version=fc_version)
