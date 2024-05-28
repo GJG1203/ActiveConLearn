@@ -17,7 +17,7 @@ cliques_cutoff = 0.5
 
 class ConAcq:
 
-    def __init__(self, stopping_t, gamma, grid, ct, bias, X, C_l, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
+    def __init__(self, stopping_t, constraint_t, gamma, grid, ct, bias, X, C_l, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
                  classifier_name=None, time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000):
 
@@ -25,9 +25,16 @@ class ConAcq:
         
         # Stopping Threshold
         if stopping_t == None:
-            self.stoppingThresh = None
+            self.stoppingThresh = 1
         else:
             self.stoppingThresh = stopping_t
+        
+        # Constraints Learned Threshold
+        if constraint_t == None:
+            self.constraintThresh = 10
+        else:
+            self.constraintThresh = constraint_t
+            
 
         # Target network
         self.C_T = ct

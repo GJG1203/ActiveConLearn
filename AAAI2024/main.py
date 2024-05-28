@@ -68,6 +68,9 @@ def parse_args():
     
     # Parsing stopping threshold - will default to 1 if none is provided
     parser.add_argument("-st", "--stopping-threshold", type=int, help="An optional stopping threshold for RobustAcq", default=1)
+    
+    # Parsing stopping threshold - will default to 10 if none is provided
+    parser.add_argument("-cont", "--constraint-threshold", type=int, help="An optional constraint threshold for RobustAcq", default=10)
 
     # Parsing benchmark
     parser.add_argument("-b", "--benchmark", type=str, required=True,
@@ -411,7 +414,7 @@ if __name__ == "__main__":
     
     ## ROBUST ACQ
     elif args.algorithm == "robustacq":
-        ca_system = RobustAcq(args.stopping_threshold, gamma, grid, C_T, qg=args.query_generation, obj=args.objective, classifier=classifier,
+        ca_system = RobustAcq(args.stopping_threshold, args.constraint_threshold, gamma, grid, C_T, qg=args.query_generation, obj=args.objective, classifier=classifier,
                               gqg=args.guide_qgen, gfs=args.guide_findscope, gfc=args.guide_findc,
                               classifier_name=args.classifier, time_limit=args.time_limit, findscope_version=fs_version,
                               findc_version=fc_version)
