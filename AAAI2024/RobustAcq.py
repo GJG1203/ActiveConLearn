@@ -1,7 +1,20 @@
 import time
 
+SOLVER = "ortools"
+
+from cpmpy import *
+from cpmpy.transformations.get_variables import get_variables
+from utils import *
+import math
+from ortools.sat.python import cp_model as ort
+from sklearn.preprocessing import MinMaxScaler
+
+from utils import find_suitable_vars_subset2, find_optimal_vars_subset
+
 from ConAcq import ConAcq
 from utils import construct_bias, get_kappa
+
+
 
 class RobustAcq(ConAcq):
     def __init__(self, stopping_t, constraint_t, gamma, grid, ct, bias, X, C_l, qg="pqgen", gqg= False, gfs=False, gfc=False, obj="proba", classifier=None,
@@ -10,7 +23,11 @@ class RobustAcq(ConAcq):
         super().__init__(stopping_t, constraint_t, gamma, grid, ct, bias, X, C_l, qg, gqg, gfs, gfc, obj, classifier, classifier_name, time_limit, findscope_version,
                     findc_version, tqgen_t, qgen_blimit)
 
+    
     def learn(self):
+        
+        # threshold to put constraints back into B when they are in Br
+        probability_threshold = 0.8
         
         answer = True
         if len(self.B) == 0:
@@ -27,7 +44,7 @@ class RobustAcq(ConAcq):
             # check if C_l is bigger than threshold2 and if so, retrain classifier and rearrange B and Br
             if self.constraintThresh >= len(self.C_l.constraints):
                 self.train_classifier()
-                rearrange_biases(self)
+                self.rearrange_biases(probability_threshold)
             
             if self.debug_mode:
                 print("Size of CL: ", len(self.C_l.constraints))
@@ -42,20 +59,17 @@ class RobustAcq(ConAcq):
 
             if not gen_flag:
                 # if no query can be generated we need to check if we can generate a query with Br
-                # TODO
-                # make a new method for pqgen that uses Br instead of B
                 
-                # gen_flag2, Y2 = self.call_query_generation(Br)
-                # answer2 = self.ask_query(Y2)
+                gen_flag2, Y2 = self.call_query_generation(constraint_set=self.Br)
+                answer2 = self.ask_query(Y2)
                 
-                # if answer2:
-                # increaseStoppingThreshold()
+                if answer2:
+                    self.increase_stopping_threshold()
                 
-                # else:
-                # kappaBr = get_kappa(self.Br, Y)
-                # scope2 = self.call_findscope(Y, kappaBr)
-                # self.call_findc(scope2)
-                break               
+                else:
+                    kappaBr = get_kappa(self.Br, Y)
+                    scope2 = self.call_findscope(Y, kappaBr)
+                    self.call_findc(scope2)               
                 
 
             self.metrics.increase_generation_time(gen_end - gen_start)
@@ -73,22 +87,30 @@ class RobustAcq(ConAcq):
                     print("B:", len(self.B))
 
             else:  # user says UNSAT
-
                 scope = self.call_findscope(Y, kappaB)
                 self.call_findc(scope)
                 
-    def rearrange_biases(self):
+    def increase_stopping_threshold(self):
+        self.stoppingThresh += 1
+                
+    def rearrange_biases(self, probability_threshold):
         data_pred = [self.get_con_features(c) for c in self.Br]
         myscore = self.classifier.predict_proba(data_pred)
         myscore = [m if len(m) > 1 else [0, m[0]] for m in myscore]
 
         P_c = [myscore[i][1] for i in range(len(myscore))]
 
-        for i in range(len(P_c)):
-            if P_c[i] >= 0.9:
-                # TODO
-                # put back from Br into B
-                break
+        # Separate constraints into those to keep and those to put back in B
+        wrongly_removed = []
+
+        for i, c in enumerate(self.Br):
+            if P_c[i] >= probability_threshold:
+                wrongly_removed.append(c)
+         
+        # put the wrongly removed constraints back in B       
+        for c in wrongly_removed:
+            self.from_Br_to_B(c)
+
             
     def from_B_to_Br(self, c):
 

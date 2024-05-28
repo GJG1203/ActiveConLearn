@@ -456,21 +456,25 @@ class ConAcq:
 
         return flag
 
-    def pqgen(self, time_limit=1):
-        # Generate a query using PQGen
+    # Generate a query using PQGen
+    def pqgen(self, constraint_set=None, time_limit=1): # added constraint_srt parameter
+        
+        # Use self.B if no constraint_set is provided
+        if constraint_set is None:
+            constraint_set = self.B
 
         # Start time (for the cutoff t)
         t0 = time.time()
 
         # Project down to only vars in scope of B
-        Y = frozenset(get_variables(self.B))
+        Y = frozenset(get_variables(constraint_set)) # use constraint_set instead of self.B
         lY = list(Y)
 
         if len(Y) == len(self.X):
-            B = self.B
+            B = constraint_set # use constraint_set instead of self.B
             Cl = self.C_l.constraints
         else:
-            B = get_con_subset(self.B, Y)
+            B = get_con_subset(constraint_set, Y) # use constraint_set instead of self.B
             Cl = get_con_subset(self.C_l.constraints, Y)
 
         global partial
@@ -600,15 +604,15 @@ class ConAcq:
                 print("RR3Time:", time.time() - t0, len(B), len(Cl))
             return flag, lY
 
-    def call_query_generation(self, answer=None):
-        # Call the specified query generation method
-
+    # Call the specified query generation method
+    def call_query_generation(self, answer=None, constraint_set=None): # added constraint_set as a parameter
+        
         # Generate e in D^X accepted by C_l and rejected by B
         if self.qg == "base":
             gen_flag = self.generate_query()
             Y = self.X
         elif self.qg == "pqgen":
-            gen_flag, Y = self.pqgen(time_limit=self.time_limit)
+            gen_flag, Y = self.pqgen(constraint_set=constraint_set, time_limit=self.time_limit)  # pass on the constraint_set
         elif self.qg == "tqgen":
 
             if self.queries_count > 0:
